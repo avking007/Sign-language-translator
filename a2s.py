@@ -19,8 +19,8 @@ def load_images():
         name = "letters/{}.jpg".format(letters)
         image = ImageTk.PhotoImage(Image.open(name))
         images.append((letters, image,))
-    # sp_img = ImageTk.PhotoImage(Image.open("letters/sp.jpg"))
-    # images.append((" ", sp_img))
+    sp_img = ImageTk.PhotoImage(Image.open("letters/sp.jpg"))
+    images.append((" ", sp_img))
 
 
 with sr.Microphone() as src:
@@ -30,7 +30,7 @@ with sr.Microphone() as src:
         audio = r.listen(src)
         try:
             text = r.recognize_google(audio)
-            # text = " hello everyone I am a good student here all"
+            # text = "hello everyone i am a good student"
             if text == "shutdown":
                 engine.say("Goodbye.")
                 engine.runAndWait()
@@ -42,16 +42,16 @@ with sr.Microphone() as src:
                 load_images()
 
                 def create(event):
-                    sign_canvas.config(scrollregion=sign_canvas.bbox('all'), width=800, height=700,
+                    sign_canvas.config(scrollregion=sign_canvas.bbox('all'), width=1300, height=650,
                                        yscrollcommand=y_scroll.set, xscrollcommand=x_scroll.set)
 
 
                 print("said this  :  " + text)
 
-                frame = tkinter.Frame(win, height=700, width=800, relief="raised", borderwidth=2)
+                frame = tkinter.Frame(win, height=650, width=1300, relief="raised", borderwidth=2)
                 frame.grid(row=1, column=1)
 
-                sign_canvas = tkinter.Canvas(frame, relief="sunken", height=700, width=800)
+                sign_canvas = tkinter.Canvas(frame, relief="sunken", height=650, width=1300)
                 sign_canvas.grid(row=0, column=0)
                 window = tkinter.Frame(sign_canvas)
                 window.bind('<Configure>', create)
@@ -64,18 +64,39 @@ with sr.Microphone() as src:
                 x_scroll.grid(row=0, column=1, sticky="ew")
 
                 text = text.upper()
-                text_array = [word for word in text.split(" ")]
+                x = [word for j in text.split() for word in (j, " ")][:-1]
+
                 row = 0
-                for x in text_array:
-                    col = 0
-                    for letter in x:
-                        for char, img in images:
-                            if char == letter:
-                                tkinter.Label(window, image=img, relief="raised").grid(row=row, column=col, padx=2,
-                                                                                       pady=2)
-                                col += 1
-                                continue
-                    row += 1
+                ct = 0
+                col = 0
+                for i in range(0,len(x)):
+
+                    if len(x[i])+ct <= 16:
+                        ct = len(x[i])+ct
+                        if i+1 < len(x) and x[i] == ' ' and len(x[i+1])+ct >16:
+                            continue
+
+                        for letter in x[i]:
+                            for char, img in images:
+                                if char == letter:
+                                    tkinter.Label(window, image=img, relief="raised").grid(row=row, column=col, padx=2,
+                                                                                           pady=2)
+                                    col += 1
+                                    continue
+                    else:
+                        ct = 0
+                        col = 0
+                        row += 1
+                        if x[i] == " ":
+                            continue
+                        ct += len(x[i])
+                        for letter in x[i]:
+                            for char, img in images:
+                                if char == letter:
+                                    tkinter.Label(window, image=img, relief="raised").grid(row=row, column=col, padx=2,
+                                                                                           pady=2)
+                                    col += 1
+                                    continue
                 win.mainloop()
                 images.clear()
         except sr.UnknownValueError:
